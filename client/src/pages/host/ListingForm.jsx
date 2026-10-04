@@ -10,6 +10,8 @@ const empty = {
   city: '',
   state: '',
   address: '',
+  latitude: '',
+  longitude: '',
   pricePerNight: '',
   maxGuests: 2,
   bedrooms: 1,
@@ -32,6 +34,8 @@ export default function ListingForm() {
         ...data,
         amenities: data.amenities.join(', '),
         imageUrl: data.images[0] || '',
+        latitude: data.location?.lat ?? '',
+        longitude: data.location?.lng ?? '',
       })
     );
   }, [id, isEdit]);
@@ -56,6 +60,11 @@ export default function ListingForm() {
       amenities: amenities.split(',').map((a) => a.trim()).filter(Boolean),
     };
     if (imageUrl) payload.images = [imageUrl];
+    const lat = Number(form.latitude);
+    const lng = Number(form.longitude);
+    if (form.latitude !== '' && form.longitude !== '' && !Number.isNaN(lat) && !Number.isNaN(lng)) {
+      payload.location = { lat, lng };
+    }
     try {
       if (isEdit) await api.put(`/listings/${id}`, payload);
       else await api.post('/listings', payload);
@@ -81,6 +90,14 @@ export default function ListingForm() {
         <input required placeholder="State" value={form.state} onChange={set('state')} />
       </div>
       <input required placeholder="Address" value={form.address} onChange={set('address')} />
+      <div className="row">
+        <label className="grow">Latitude (optional)
+          <input type="number" step="any" min="-90" max="90" placeholder="e.g. 26.9239" value={form.latitude} onChange={set('latitude')} />
+        </label>
+        <label className="grow">Longitude (optional)
+          <input type="number" step="any" min="-180" max="180" placeholder="e.g. 75.8267" value={form.longitude} onChange={set('longitude')} />
+        </label>
+      </div>
       <div className="row">
         <label className="grow">Max guests
           <input type="number" min="1" value={form.maxGuests} onChange={set('maxGuests')} />
